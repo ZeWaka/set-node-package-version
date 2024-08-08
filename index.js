@@ -1,10 +1,10 @@
 
-const fs = require('fs');
-const core = require('@actions/core');
+import { readFileSync, writeFileSync } from 'fs';
+import { getInput, setFailed, setOutput } from '@actions/core';
 
-const file = core.getInput('file');
-const regex = core.getInput('regex');
-const version = core.getInput('version');
+const file = getInput('file');
+const regex = getInput('regex');
+const version = getInput('version');
 
 
 /// run
@@ -12,37 +12,37 @@ async function run()
 {
     try
     {
-        const pkg = JSON.parse(fs.readFileSync(file));
+        const pkg = JSON.parse(readFileSync(file));
         if (pkg.version)
         {
             const ver = parse_version(version);
             if (ver)
             {
                 pkg.version = version;
-                fs.writeFileSync(file, JSON.stringify(pkg, null, '  ') + '\n');
+                writeFileSync(file, JSON.stringify(pkg, null, '  ') + '\n');
             }
             else
             {
-                core.setFailed("failed to parse package.json version");
+                setFailed("failed to parse package.json version");
             }
         }
         else
         {
-            core.setFailed("invalid package.json does not contain version");
+            setFailed("invalid package.json does not contain version");
         }
 
         // read back
-        const pkg2 = JSON.parse(fs.readFileSync(file));
+        const pkg2 = JSON.parse(readFileSync(file));
         if (pkg2.version)
         {
             const ver = parse_version(pkg2.version);
             if (ver)
             {
-                core.setOutput('version', pkg2.version);
+                setOutput('version', pkg2.version);
             }
             else
             {
-                core.setFailed("failed to parse package.json version");
+                setFailed("failed to parse package.json version");
             }
 
             if (pkg2.version === pkg.version)
@@ -51,17 +51,17 @@ async function run()
             }
             else
             {
-                core.setFailed("readback version different from input version");
+                setFailed("readback version different from input version");
             }
         }
         else
         {
-            core.setFailed("invalid package.json does not contain version");
+            setFailed("invalid package.json does not contain version");
         }
     }
     catch (error)
     {
-        core.setFailed(error.message);
+        setFailed(error.message);
     }
 }
 

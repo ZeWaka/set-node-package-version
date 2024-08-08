@@ -20,11 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set version
         id: package_version
-        uses: KageKirin/set-node-package-version@v0
+        uses: ZeWaka/set-node-package-version@v1
         with:
           version: ${{ github.ref_name }}
 
@@ -48,7 +48,7 @@ or lies in a subfolder.
 This is the Regular Expression used to verify the version.
 It defaults to an equivalent of `major.minor.patch` and requires all 3 integers to be present.
 
-### `version` (input)
+### `version` (required)
 
 This is the version string to write into the package.
 It must match the provided `regex` format.
