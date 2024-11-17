@@ -1,6 +1,7 @@
 
 import { readFileSync, writeFileSync } from 'fs';
 import { getInput, setFailed, setOutput } from '@actions/core';
+import semver from 'semver';
 
 const file = getInput('file');
 const regex = getInput('regex');
@@ -12,14 +13,14 @@ async function run()
 {
     try
     {
-        const pkg = JSON.parse(readFileSync(file));
-        if (pkg.version)
+        let content = readFileSync(file, 'utf8');
+        const versionRegex = /("version"\s*:\s*")[^"]+(")/;
+        if (versionRegex.test(content))
         {
-            const ver = parse_version(version);
-            if (ver)
+            if (semver.valid(version))
             {
-                pkg.version = version;
-                writeFileSync(file, JSON.stringify(pkg, null, '  ') + '\n');
+                content = content.replace(versionRegex, `$1${version}$2`);
+                writeFileSync(file, content, 'utf8');
             }
             else
             {
@@ -35,8 +36,7 @@ async function run()
         const pkg2 = JSON.parse(readFileSync(file));
         if (pkg2.version)
         {
-            const ver = parse_version(pkg2.version);
-            if (ver)
+            if (semver.valid(pkg2.version))
             {
                 setOutput('version', pkg2.version);
             }
@@ -45,7 +45,7 @@ async function run()
                 setFailed("failed to parse package.json version");
             }
 
-            if (pkg2.version === pkg.version)
+            if (pkg2.version === version)
             {
                 // no issues
             }
@@ -63,17 +63,6 @@ async function run()
     {
         setFailed(error.message);
     }
-}
-
-function parse_version(version)
-{
-    const match = version.match(regex);
-    if (match)
-    {
-        console.dir({groups: match.groups});
-        return [match.groups.major, match.groups.minor, match.groups.patch, match.groups.prerelease, match.groups.buildmetadata];
-    }
-    return null
 }
 
 run()
